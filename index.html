@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NBA Teams — Rosters, Positions &amp; Heights</title>
+<style>
+  :root{--ink:#0b1622;--muted:#5b6b7b;--line:#e4e9ef;--card:#fff;--bg:#f4f6f9;
+    --tc:#1D428A;--ta:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.5}
+
+  .topbar{background:var(--tc);color:#fff;padding:14px 20px;display:flex;
+    align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:10;
+    box-shadow:0 2px 12px rgba(0,0,0,.12);transition:background .3s}
+  .topbar h1{font-size:19px;font-weight:800;letter-spacing:-.3px}
+  .back{display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+    color:#fff;font-weight:600;font-size:13px;padding:7px 14px;border-radius:999px;cursor:pointer}
+  .back:hover{background:rgba(255,255,255,.28)}
+  .spacer{margin-left:auto}
+  .topbar label{font-size:12px;opacity:.85;text-transform:uppercase;letter-spacing:.5px;margin-right:4px}
+  .topbar select,.topbar input{border:none;border-radius:999px;padding:8px 14px;font-size:14px;outline:none}
+  .topbar input{width:180px}
+
+  main{max-width:1120px;margin:0 auto;padding:22px 16px 60px}
+  .lead{color:var(--muted);font-size:14px;margin-bottom:18px;text-align:center}
+
+  /* intro / explainer */
+  .hero{background:linear-gradient(135deg,var(--tc),#0b1622);color:#fff;border-radius:18px;
+    padding:30px 28px;margin-bottom:8px;position:relative;overflow:hidden}
+  .hero::after{content:"🏀";position:absolute;right:-14px;bottom:-24px;font-size:150px;opacity:.10}
+  .hero h2{font-size:clamp(22px,4vw,32px);font-weight:900;letter-spacing:-.5px;margin-bottom:8px}
+  .hero p{max-width:640px;font-size:15px;line-height:1.6;opacity:.92}
+  .hero .feats{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .hero .feat{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+    border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center}
+  .hero .feat b{display:block;font-size:13px}
+  .hero .feat small{display:block;font-weight:400;opacity:.8;font-size:11px}
+  .hero .how{margin-top:16px;font-size:12.5px;opacity:.85}
+  .hero .how b{color:var(--ta)}
+  .sechead{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;
+    color:var(--muted);margin:30px 0 14px;display:flex;align-items:center;gap:10px}
+  .sechead::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* leaderboard */
+  .boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .board{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .board h3{font-size:13px;font-weight:800;padding:12px 16px;color:#fff;background:var(--tc);
+    text-transform:uppercase;letter-spacing:.5px}
+  .lrow{display:flex;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid var(--line);cursor:pointer}
+  .lrow:hover{background:var(--bg)}
+  .lrow .rk{font-weight:800;color:var(--muted);width:18px;text-align:center;font-size:13px}
+  .lrow img{width:34px;height:26px;object-fit:cover;border-radius:4px;background:var(--bg)}
+  .lrow .ln{flex:1;font-size:13px;font-weight:600;line-height:1.2}
+  .lrow .lt{font-size:11px;color:var(--muted)}
+  .lrow .lv{font-weight:800;color:var(--tc);font-size:15px}
+
+  /* home team grid */
+  .teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+  .team{position:relative;border-radius:14px;overflow:hidden;cursor:pointer;color:#fff;
+    padding:18px 16px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between;
+    transition:transform .12s,box-shadow .12s;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .team:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.22)}
+  .team .abbr{font-size:34px;font-weight:900;letter-spacing:-1px}
+  .team .tname{font-size:14px;font-weight:600;line-height:1.25}
+  .team .champ{position:absolute;top:10px;right:10px;font-size:18px}
+  .team .champtag{display:inline-block;margin-top:6px;font-size:10px;font-weight:700;
+    background:rgba(255,255,255,.92);color:#111;padding:2px 8px;border-radius:999px;
+    text-transform:uppercase;letter-spacing:.4px;width:fit-content}
+
+  .hidden{display:none}
+  .teamhead{border-radius:16px;color:#fff;padding:26px 24px;margin-bottom:20px;
+    background:var(--tc);position:relative;overflow:hidden}
+  .teamhead h2{font-size:clamp(24px,4vw,36px);font-weight:900;letter-spacing:-.5px}
+  .teamhead .tsub{opacity:.85;font-size:14px;margin-top:2px}
+  .teamhead .champbadge{display:inline-block;margin-top:12px;background:var(--ta);color:#111;
+    font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.5px;padding:6px 14px;border-radius:999px}
+  .teamhead .wm{position:absolute;right:-10px;bottom:-30px;font-size:150px;font-weight:900;opacity:.12;line-height:1}
+
+  .meta{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:16px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;text-align:center;min-width:110px}
+  .stat b{display:block;font-size:20px;color:var(--tc)}
+  .stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+  .controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px}
+  .controls button{border:1px solid var(--line);background:var(--card);color:var(--muted);
+    font-size:12px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;
+    text-transform:uppercase;letter-spacing:.4px}
+  .controls button:hover{border-color:var(--tc);color:var(--tc)}
+  .controls button.active{background:var(--tc);color:#fff;border-color:var(--tc)}
+  .controls .sep{width:1px;background:var(--line);margin:0 4px}
+
+  .posgroup{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;
+    color:var(--tc);margin:22px 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+  .player{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;
+    box-shadow:0 1px 3px rgba(0,0,0,.04);border-top:4px solid var(--tc);
+    transition:transform .12s,box-shadow .12s}
+  .player:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.12)}
+  .head{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+  .shot{width:56px;height:42px;object-fit:cover;border-radius:8px;background:var(--bg);flex:none}
+  .headtxt{flex:1;min-width:0}
+  .num{font-size:11px;font-weight:700;color:var(--muted)}
+  .name{font-size:16px;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .posbadge{font-size:11px;font-weight:700;color:#fff;background:var(--tc);padding:3px 9px;border-radius:6px;white-space:nowrap}
+  .rows{display:flex;gap:8px;margin-bottom:10px}
+  .cell{flex:1;background:var(--bg);border-radius:8px;padding:8px 6px;text-align:center}
+  .cell span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .cell b{font-size:17px;color:var(--tc)}
+  .subline{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
+  .subline span b{color:var(--ink);font-weight:700}
+
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:0 20px 30px}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar">
+  <button class="back" id="back">← All Teams</button>
+  <h1 id="title">🏀 NBA Teams</h1>
+  <div class="spacer"></div>
+  <label for="season">Season</label>
+  <select id="season"></select>
+  <input id="search" placeholder="Search team…">
+</div>
+
+<main>
+  <section id="home">
+    <div class="hero">
+      <h2>NBA Team Explorer</h2>
+      <p>A visual guide to every NBA team's roster — each player's <b>position</b>, <b>height</b>,
+         and <b>per-game stats</b> — with the league champion highlighted for each season. Live data
+         pulled from the NBA's official stats via the open-source <b>nba_api</b>.</p>
+      <div class="feats">
+        <div class="feat">🏀<div><b>30 teams</b><small>colored & clickable</small></div></div>
+        <div class="feat">📅<div><b>5 seasons</b><small>2021-22 → 2025-26</small></div></div>
+        <div class="feat">🏆<div><b>Champions</b><small>pinned each year</small></div></div>
+        <div class="feat">📊<div><b>League leaders</b><small>PTS / REB / AST / BLK</small></div></div>
+        <div class="feat">🧍<div><b>Positions & heights</b><small>group + sort</small></div></div>
+      </div>
+      <div class="how">How to use: pick a <b>Season</b> up top, click any <b>team card</b> (or a leaderboard name)
+        to open its roster, then <b>sort</b> or <b>group by position</b> inside the team view.</div>
+    </div>
+    <p class="lead" id="homelead"></p>
+    <div class="sechead">League Leaders</div>
+    <div class="boards" id="boards"></div>
+    <div class="sechead">All Teams</div>
+    <div class="teams" id="teams"></div>
+  </section>
+
+  <section id="detail" class="hidden">
+    <div class="teamhead" id="teamhead"></div>
+    <div class="meta" id="teammeta"></div>
+    <div class="controls" id="controls">
+      <button data-sort="NUM" class="active">Jersey #</button>
+      <button data-sort="PTS">Points</button>
+      <button data-sort="REB">Rebounds</button>
+      <button data-sort="AST">Assists</button>
+      <button data-sort="HEIGHT_IN">Height</button>
+      <div class="sep"></div>
+      <button data-group id="groupBtn">Group by position</button>
+    </div>
+    <div id="roster"></div>
+  </section>
+</main>
+
+<footer>Data via <a href="https://github.com/swar/nba_api">nba_api</a> · headshots via cdn.nba.com. Champions verified via NBA.com/ESPN.</footer>
+
+<script src="nba_data.js"></script>
+<script>
+const ROOT = window.NBA_DATA;
+const SEASONS = ROOT.seasons;
+const $ = id => document.getElementById(id);
+const toIn = h => { if(!h||h.indexOf('-')<0) return 0; const [f,i]=h.split('-').map(Number); return f*12+i; };
+const fmtH = n => `${Math.floor(n/12)}-${n%12}`;
+const pct = v => v==null?'—':(v*100).toFixed(1)+'%';
+const shot = id => `https://cdn.nba.com/headshots/nba/latest/1040x760/${id}.png`;
+const initials = n => n.split(' ').map(w=>w[0]).slice(0,2).join('');
+const FALLBACK = "this.onerror=null;this.style.display='none';";
+const setTheme = (c,a)=>{document.documentElement.style.setProperty('--tc',c);
+  document.documentElement.style.setProperty('--ta',a);};
+
+let season = SEASONS[0];
+const DATA = () => ROOT.data[season];
+
+/* season dropdown */
+$('season').innerHTML = SEASONS.map(s=>`<option value="${s}">${s}</option>`).join('');
+$('season').value = season;
+
+/* ---------- HOME ---------- */
+function leaderRows(stat, label){
+  const all=[];
+  for(const t of Object.values(DATA()))
+    for(const p of t.players) if(p.s) all.push({p,t});
+  all.sort((a,b)=> (b.p.s[stat]) - (a.p.s[stat]));
+  return `<div class="board"><h3>${label}</h3>` + all.slice(0,5).map((x,i)=>`
+    <div class="lrow" data-abbr="${x.t.abbr}">
+      <div class="rk">${i+1}</div>
+      <img src="${shot(x.p.id)}" onerror="${FALLBACK}" alt="">
+      <div class="ln">${x.p.name}<div class="lt">${x.t.abbr} · ${x.p.pos}</div></div>
+      <div class="lv">${x.p.s[stat]}</div>
+    </div>`).join('') + `</div>`;
+}
+function renderBoards(){
+  $('boards').innerHTML =
+    leaderRows('PTS','Points / game') +
+    leaderRows('REB','Rebounds / game') +
+    leaderRows('AST','Assists / game') +
+    leaderRows('BLK','Blocks / game');
+}
+function renderHome(filter=''){
+  const champ = Object.values(DATA()).find(t=>t.champion);
+  $('homelead').innerHTML = `${season} season · ${champ?`🏆 <b>${champ.name}</b> champions · `:''}click any team for its roster, positions, heights &amp; stats`;
+  renderBoards();
+  const list = Object.values(DATA())
+    .filter(t => (t.name+t.abbr).toLowerCase().includes(filter.toLowerCase()))
+    .sort((a,b)=> b.champion-a.champion || a.name.localeCompare(b.name));
+  $('teams').innerHTML = list.map(t=>`
+    <div class="team" style="background:${t.color}" data-abbr="${t.abbr}">
+      ${t.champion?'<div class="champ">🏆</div>':''}
+      <div class="abbr" style="color:${t.accent}">${t.abbr}</div>
+      <div><div class="tname">${t.city}<br>${t.nickname}</div>
+        ${t.champion?`<div class="champtag">${season.split('-')[0].slice(0,2)+season.split('-')[1]} Champions</div>`:''}</div>
+    </div>`).join('');
+}
+
+/* ---------- TEAM DETAIL ---------- */
+let current=null, sortKey='NUM', grouped=false;
+function openTeam(abbr){
+  const t = DATA()[abbr]; if(!t) return;
+  current=t; setTheme(t.color,t.accent);
+  $('home').classList.add('hidden'); $('detail').classList.remove('hidden');
+  $('back').style.display='inline-block'; $('search').style.display='none';
+  $('title').textContent = `${t.abbr} · ${t.nickname}`;
+  $('teamhead').innerHTML = `
+    <h2>${t.name}</h2>
+    <div class="tsub">${season} · ${t.players.length} players</div>
+    ${t.champion?`<div class="champbadge">🏆 ${season} NBA Champions</div>`:''}
+    <div class="wm">${t.abbr}</div>`;
+  const hs = t.players.map(p=>toIn(p.height)).filter(Boolean);
+  const tallest = t.players.reduce((m,p)=>toIn(p.height)>toIn(m.height)?p:m,t.players[0]);
+  const scorer = t.players.filter(p=>p.s).reduce((m,p)=>(p.s.PTS>((m.s&&m.s.PTS)||-1)?p:m),t.players[0]);
+  $('teammeta').innerHTML = `
+    <div class="stat"><b>${t.players.length}</b><span>Players</span></div>
+    <div class="stat"><b>${tallest.height}"</b><span>Tallest</span></div>
+    <div class="stat"><b>${hs.length?fmtH(Math.round(hs.reduce((a,b)=>a+b,0)/hs.length)):'—'}"</b><span>Avg Height</span></div>
+    <div class="stat"><b>${scorer.s?scorer.s.PTS:'—'}</b><span>Top Scorer PPG</span></div>`;
+  renderRoster();
+}
+
+function card(p){
+  const s=p.s||{};
+  return `<div class="player">
+    <div class="head">
+      <img class="shot" src="${shot(p.id)}" onerror="${FALLBACK}" alt="">
+      <div class="headtxt">
+        <div class="num">#${p.num||'—'}</div>
+        <div class="name">${p.name}</div>
+      </div>
+      <div class="posbadge">${p.pos}<br>${p.height}</div>
+    </div>
+    <div class="rows">
+      <div class="cell"><span>PTS</span><b>${s.PTS??'—'}</b></div>
+      <div class="cell"><span>REB</span><b>${s.REB??'—'}</b></div>
+      <div class="cell"><span>AST</span><b>${s.AST??'—'}</b></div>
+    </div>
+    <div class="subline">
+      <span>GP <b>${s.GP??'—'}</b></span><span>MIN <b>${s.MIN??'—'}</b></span>
+      <span>FG <b>${pct(s.FG_PCT)}</b></span><span>3P <b>${pct(s.FG3_PCT)}</b></span>
+    </div></div>`;
+}
+const cmp = key => (a,b)=>{
+  if(key==='NUM') return (parseInt(a.num||'999')||999)-(parseInt(b.num||'999')||999);
+  if(key==='HEIGHT_IN') return toIn(b.height)-toIn(a.height);
+  return ((b.s&&b.s[key])??-1)-((a.s&&a.s[key])??-1);
+};
+function renderRoster(){
+  const ps=[...current.players].sort(cmp(sortKey));
+  if(!grouped){ $('roster').innerHTML = `<div class="grid">${ps.map(card).join('')}</div>`; return; }
+  const bucket = p => p.pos[0]==='G'?'Guards':p.pos[0]==='F'?'Forwards':p.pos[0]==='C'?'Centers':'Other';
+  const order=['Guards','Forwards','Centers','Other'];
+  $('roster').innerHTML = order.map(g=>{
+    const grp=ps.filter(p=>bucket(p)===g); if(!grp.length) return '';
+    return `<div class="posgroup">${g} · ${grp.length}</div><div class="grid">${grp.map(card).join('')}</div>`;
+  }).join('');
+}
+
+function goHome(){
+  $('detail').classList.add('hidden'); $('home').classList.remove('hidden');
+  $('back').style.display='none'; $('search').style.display='';
+  $('title').textContent='🏀 NBA Teams'; setTheme('#1D428A','#fff'); location.hash='';
+}
+
+/* ---------- events ---------- */
+$('teams').addEventListener('click',e=>{const c=e.target.closest('.team'); if(c) location.hash=c.dataset.abbr;});
+$('boards').addEventListener('click',e=>{const r=e.target.closest('.lrow'); if(r) location.hash=r.dataset.abbr;});
+$('back').addEventListener('click',goHome);
+$('controls').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.hasAttribute('data-group')){ grouped=!grouped; b.classList.toggle('active',grouped); renderRoster(); return; }
+  sortKey=b.dataset.sort;
+  document.querySelectorAll('#controls button[data-sort]').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); renderRoster();
+});
+$('search').addEventListener('input',e=>renderHome(e.target.value));
+$('season').addEventListener('change',e=>{
+  season=e.target.value;
+  if(!$('detail').classList.contains('hidden') && current){
+    const t=DATA()[current.abbr]; if(t) openTeam(current.abbr); else goHome();
+  } else renderHome($('search').value);
+});
+
+function route(){
+  const abbr=location.hash.replace('#','').toUpperCase();
+  if(abbr && DATA()[abbr]) openTeam(abbr); else goHome();
+}
+window.addEventListener('hashchange',route);
+renderHome(); route();
+</script>
+</body>
+</html>
