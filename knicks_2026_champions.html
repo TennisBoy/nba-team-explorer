@@ -118,68 +118,31 @@
   Championship result via NBA.com &amp; ESPN.
 </footer>
 
+<script src="nba_data.js"></script>
 <script>
-const roster = [
-  {"PLAYER":"Jordan Clarkson","NUM":"00","POSITION":"G","HEIGHT":"6-5","WEIGHT":"194","AGE":34},
-  {"PLAYER":"Dillon Jones","NUM":"","POSITION":"F","HEIGHT":"6-5","WEIGHT":"235","AGE":24},
-  {"PLAYER":"Miles McBride","NUM":"2","POSITION":"G","HEIGHT":"6-2","WEIGHT":"195","AGE":25},
-  {"PLAYER":"Josh Hart","NUM":"3","POSITION":"G","HEIGHT":"6-5","WEIGHT":"215","AGE":31},
-  {"PLAYER":"Pacôme Dadiet","NUM":"4","POSITION":"F","HEIGHT":"6-9","WEIGHT":"210","AGE":20},
-  {"PLAYER":"Jose Alvarado","NUM":"5","POSITION":"G","HEIGHT":"6-0","WEIGHT":"179","AGE":28},
-  {"PLAYER":"OG Anunoby","NUM":"8","POSITION":"F-G","HEIGHT":"6-7","WEIGHT":"240","AGE":28},
-  {"PLAYER":"Kevin McCullar Jr.","NUM":"9","POSITION":"G","HEIGHT":"6-6","WEIGHT":"210","AGE":25},
-  {"PLAYER":"Jalen Brunson","NUM":"11","POSITION":"G","HEIGHT":"6-2","WEIGHT":"190","AGE":29},
-  {"PLAYER":"Tyler Kolek","NUM":"13","POSITION":"G","HEIGHT":"6-2","WEIGHT":"195","AGE":25},
-  {"PLAYER":"Jeremy Sochan","NUM":"20","POSITION":"F","HEIGHT":"6-8","WEIGHT":"230","AGE":23},
-  {"PLAYER":"Mitchell Robinson","NUM":"23","POSITION":"C-F","HEIGHT":"7-0","WEIGHT":"240","AGE":28},
-  {"PLAYER":"Mikal Bridges","NUM":"25","POSITION":"G-F","HEIGHT":"6-6","WEIGHT":"209","AGE":29},
-  {"PLAYER":"Karl-Anthony Towns","NUM":"32","POSITION":"C-F","HEIGHT":"7-0","WEIGHT":"248","AGE":30},
-  {"PLAYER":"Landry Shamet","NUM":"44","POSITION":"G","HEIGHT":"6-5","WEIGHT":"190","AGE":29},
-  {"PLAYER":"Trey Jemison III","NUM":"50","POSITION":"C","HEIGHT":"6-10","WEIGHT":"270","AGE":26},
-  {"PLAYER":"Mohamed Diawara","NUM":"51","POSITION":"F","HEIGHT":"6-9","WEIGHT":"225","AGE":21},
-  {"PLAYER":"Ariel Hukporti","NUM":"55","POSITION":"C","HEIGHT":"7-0","WEIGHT":"246","AGE":24}
-];
+// Roster + stats are NOT hard-coded here: they come from the shared nba_data.js
+// dataset (the same file index.html uses), so this page updates when the data is regenerated.
+const ROOT = window.NBA_DATA;
+// Pick the season the Knicks won the title (falls back to the newest season if none flagged).
+const season = ROOT.seasons.find(s => ROOT.data[s] && ROOT.data[s].NYK && ROOT.data[s].NYK.champion) || ROOT.seasons[0];
+const roster = ROOT.data[season].NYK.players;   // [{id,name,num,pos,height,weight,age,s}]
 
-// 2025-26 per-game stats, keyed by player name
-const stats = {
-  "Jordan Clarkson":{GP:72,MIN:17.8,PTS:8.6,REB:1.8,AST:1.3,STL:0.4,BLK:0.1,FG_PCT:.451,FG3_PCT:.327,FT_PCT:.83},
-  "Dillon Jones":{GP:7,MIN:5.6,PTS:1.3,REB:1.0,AST:0.6,STL:0.4,BLK:0.0,FG_PCT:.222,FG3_PCT:.20,FT_PCT:1.0},
-  "Miles McBride":{GP:41,MIN:26.3,PTS:12.0,REB:2.4,AST:2.6,STL:0.9,BLK:0.2,FG_PCT:.423,FG3_PCT:.413,FT_PCT:.787},
-  "Josh Hart":{GP:66,MIN:30.2,PTS:12.0,REB:7.4,AST:4.8,STL:1.1,BLK:0.3,FG_PCT:.508,FG3_PCT:.413,FT_PCT:.72},
-  "Pacôme Dadiet":{GP:29,MIN:4.7,PTS:1.7,REB:0.9,AST:0.4,STL:0.1,BLK:0.0,FG_PCT:.333,FG3_PCT:.219,FT_PCT:.818},
-  "Jose Alvarado":{GP:28,MIN:16.9,PTS:6.6,REB:2.0,AST:3.8,STL:1.0,BLK:0.1,FG_PCT:.414,FG3_PCT:.33,FT_PCT:.682},
-  "OG Anunoby":{GP:67,MIN:33.2,PTS:16.7,REB:5.2,AST:2.2,STL:1.6,BLK:0.7,FG_PCT:.484,FG3_PCT:.386,FT_PCT:.828},
-  "Kevin McCullar Jr.":{GP:21,MIN:7.4,PTS:2.4,REB:1.3,AST:1.0,STL:0.4,BLK:0.0,FG_PCT:.426,FG3_PCT:.333,FT_PCT:.40},
-  "Jalen Brunson":{GP:74,MIN:35.0,PTS:26.0,REB:3.3,AST:6.8,STL:0.8,BLK:0.1,FG_PCT:.467,FG3_PCT:.369,FT_PCT:.841},
-  "Tyler Kolek":{GP:62,MIN:11.7,PTS:4.4,REB:1.6,AST:2.7,STL:0.4,BLK:0.1,FG_PCT:.435,FG3_PCT:.386,FT_PCT:.70},
-  "Jeremy Sochan":{GP:16,MIN:6.9,PTS:2.8,REB:2.1,AST:0.8,STL:0.4,BLK:0.1,FG_PCT:.567,FG3_PCT:.20,FT_PCT:.80},
-  "Mitchell Robinson":{GP:60,MIN:19.6,PTS:5.7,REB:8.8,AST:0.9,STL:0.9,BLK:1.2,FG_PCT:.723,FG3_PCT:.0,FT_PCT:.408},
-  "Mikal Bridges":{GP:82,MIN:32.8,PTS:14.4,REB:3.8,AST:3.7,STL:1.3,BLK:0.8,FG_PCT:.49,FG3_PCT:.371,FT_PCT:.827},
-  "Karl-Anthony Towns":{GP:75,MIN:31.0,PTS:20.1,REB:11.9,AST:3.0,STL:0.9,BLK:0.5,FG_PCT:.501,FG3_PCT:.368,FT_PCT:.858},
-  "Landry Shamet":{GP:51,MIN:23.0,PTS:9.3,REB:1.8,AST:1.4,STL:0.6,BLK:0.2,FG_PCT:.437,FG3_PCT:.392,FT_PCT:.711},
-  "Trey Jemison III":{GP:13,MIN:6.3,PTS:1.0,REB:1.4,AST:0.4,STL:0.1,BLK:0.2,FG_PCT:.60,FG3_PCT:.0,FT_PCT:1.0},
-  "Mohamed Diawara":{GP:69,MIN:9.2,PTS:3.6,REB:1.4,AST:0.8,STL:0.2,BLK:0.1,FG_PCT:.423,FG3_PCT:.369,FT_PCT:.75},
-  "Ariel Hukporti":{GP:54,MIN:9.2,PTS:2.2,REB:2.9,AST:0.5,STL:0.2,BLK:0.5,FG_PCT:.563,FG3_PCT:.25,FT_PCT:.788}
-};
-
-const toInches = h => { const [f,i]=h.split('-').map(Number); return f*12+i; };
+const toInches = h => { if(!h||h.indexOf('-')<0) return 0; const [f,i]=h.split('-').map(Number); return f*12+i; };
 const fmt = inch => `${Math.floor(inch/12)}-${inch%12}`;
 const pct = v => v==null ? '-' : (v*100).toFixed(1)+'%';
 
-// merge
-roster.forEach(p => { p.s = stats[p.PLAYER] || {}; p.HEIGHT_IN = toInches(p.HEIGHT); });
-
 const grid = document.getElementById('roster');
+// Render a list of players as cards (position, height, and per-game stats).
 function render(list){
   grid.innerHTML = list.map(p => {
-    const s = p.s;
+    const s = p.s || {};                          // s is null for players with no games
     return `
     <div class="player">
       <div class="head">
-        <div class="num">#${p.NUM || '-'}</div>
-        <div class="posbadge">${p.POSITION} · ${p.HEIGHT}</div>
+        <div class="num">#${p.num || '-'}</div>
+        <div class="posbadge">${p.pos} · ${p.height}</div>
       </div>
-      <div class="name">${p.PLAYER}</div>
+      <div class="name">${p.name}</div>
       <div class="rows">
         <div class="cell"><span>PTS</span><b>${s.PTS??'-'}</b></div>
         <div class="cell"><span>REB</span><b>${s.REB??'-'}</b></div>
@@ -195,11 +158,12 @@ function render(list){
   }).join('');
 }
 
+// Sort by jersey # (asc), height (desc), or a per-game stat (desc), then re-render.
 function sortBy(key){
   const list = [...roster].sort((a,b)=>{
-    if(key==='NUM') return (parseInt(a.NUM||'999'))-(parseInt(b.NUM||'999'));
-    if(key==='HEIGHT_IN') return b.HEIGHT_IN-a.HEIGHT_IN;
-    return (b.s[key]??-1)-(a.s[key]??-1);
+    if(key==='NUM') return (parseInt(a.num||'999')||999)-(parseInt(b.num||'999')||999);
+    if(key==='HEIGHT_IN') return toInches(b.height)-toInches(a.height);
+    return ((b.s&&b.s[key])??-1)-((a.s&&a.s[key])??-1);
   });
   render(list);
 }
@@ -211,13 +175,13 @@ document.getElementById('controls').addEventListener('click', e=>{
   sortBy(e.target.dataset.sort);
 });
 
-sortBy('NUM');
+sortBy('NUM');   // default view, sorted by jersey number
 
-// summary stats
+// summary tiles, computed from the roster data
 document.getElementById('s-count').textContent = roster.length;
-const inches = roster.map(p => p.HEIGHT_IN);
-const tallest = roster[inches.indexOf(Math.max(...inches))];
-document.getElementById('s-tall').textContent = tallest.HEIGHT + '"';
+const inches = roster.map(p => toInches(p.height)).filter(Boolean);
+const tallest = roster.reduce((m,p)=>toInches(p.height)>toInches(m.height)?p:m, roster[0]);
+document.getElementById('s-tall').textContent = tallest.height + '"';
 document.getElementById('s-avg').textContent = fmt(Math.round(inches.reduce((a,b)=>a+b,0)/inches.length)) + '"';
 </script>
 </body>

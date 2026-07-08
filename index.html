@@ -263,31 +263,38 @@
 
 <script src="nba_data.js"></script>
 <script>
+// ROOT is the whole dataset from nba_data.js: { seasons:[...], data:{ season:{ ABBR:{team} } } }
 const ROOT = window.NBA_DATA;
-const SEASONS = ROOT.seasons;
-const $ = id => document.getElementById(id);
+const SEASONS = ROOT.seasons;                 // e.g. ["2025-26", ... "2021-22"]
+
+// --- small helpers ---
+const $ = id => document.getElementById(id);  // shorthand for getElementById
+// "6-9" (feet-inches) -> total inches, so heights can be compared/averaged
 const toIn = h => { if(!h||h.indexOf('-')<0) return 0; const [f,i]=h.split('-').map(Number); return f*12+i; };
-const fmtH = n => `${Math.floor(n/12)}-${n%12}`;
-const pct = v => v==null?'-':(v*100).toFixed(1)+'%';
-const shot = id => `https://cdn.nba.com/headshots/nba/latest/1040x760/${id}.png`;
-const initials = n => n.split(' ').map(w=>w[0]).slice(0,2).join('');
+const fmtH = n => `${Math.floor(n/12)}-${n%12}`;        // inches -> "6-9"
+const pct = v => v==null?'-':(v*100).toFixed(1)+'%';    // 0.451 -> "45.1%", '-' when missing
+const shot = id => `https://cdn.nba.com/headshots/nba/latest/1040x760/${id}.png`; // headshot URL by player id
+const initials = n => n.split(' ').map(w=>w[0]).slice(0,2).join('');  // "LeBron James" -> "LJ"
+// inline onerror: if a headshot 404s, hide the <img> so the initials behind it show through
 const FALLBACK = "this.onerror=null;this.style.display='none';";
+// repaint the page accent: --tc = team color, --ta = team accent (CSS custom properties)
 const setTheme = (c,a)=>{document.documentElement.style.setProperty('--tc',c);
   document.documentElement.style.setProperty('--ta',a);};
 
-let season = SEASONS[0];
-const DATA = () => ROOT.data[season];
+let season = SEASONS[0];                       // currently selected season (defaults to newest)
+const DATA = () => ROOT.data[season];          // teams object for the selected season
 
-/* season dropdown */
+// populate the season <select> dropdown from the available seasons
 $('season').innerHTML = SEASONS.map(s=>`<option value="${s}">${s}</option>`).join('');
 $('season').value = season;
 
-/* ---------- HOME ---------- */
+/* ==================== HOME PAGE ==================== */
+// Build one leaderboard card: gather every player with stats, sort by `stat`, take top 5.
 function leaderRows(stat, label){
   const all=[];
   for(const t of Object.values(DATA()))
-    for(const p of t.players) if(p.s) all.push({p,t});
-  all.sort((a,b)=> (b.p.s[stat]) - (a.p.s[stat]));
+    for(const p of t.players) if(p.s) all.push({p,t});  // p.s is null for players who logged no games
+  all.sort((a,b)=> (b.p.s[stat]) - (a.p.s[stat]));       // descending by the chosen stat
   return `<div class="board"><h3>${label}</h3>` + all.slice(0,5).map((x,i)=>`
     <div class="lrow" data-abbr="${x.t.abbr}">
       <div class="rk">${i+1}</div>
@@ -296,6 +303,7 @@ function leaderRows(stat, label){
       <div class="lv">${x.p.s[stat]}</div>
     </div>`).join('') + `</div>`;
 }
+// Render the four leaderboards (points / rebounds / assists / blocks per game).
 function renderBoards(){
   $('boards').innerHTML =
     leaderRows('PTS','Points / game') +
@@ -303,10 +311,11 @@ function renderBoards(){
     leaderRows('AST','Assists / game') +
     leaderRows('BLK','Blocks / game');
 }
+// Render the grid of team cards, optionally filtered by the search text.
 function renderTeams(filter=''){
   const list = Object.values(DATA())
-    .filter(t => (t.name+t.abbr).toLowerCase().includes(filter.toLowerCase()))
-    .sort((a,b)=> b.champion-a.champion || a.name.localeCompare(b.name));
+    .filter(t => (t.name+t.abbr).toLowerCase().includes(filter.toLowerCase()))  // name/abbr match
+    .sort((a,b)=> b.champion-a.champion || a.name.localeCompare(b.name));        // champion first, then A-Z
   if(!list.length){ $('teams').innerHTML = `<p class="lead" style="grid-column:1/-1">No teams match "${filter}".</p>`; return; }
   $('teams').innerHTML = list.map(t=>`
     <div class="team" style="background:${t.color}" data-abbr="${t.abbr}">
@@ -323,13 +332,14 @@ function renderHome(filter=''){
   renderTeams(filter);
 }
 
-/* ---------- TEAM DETAIL ---------- */
-let current=null, sortKey='NUM', grouped=false;
+/* ==================== TEAM DETAIL VIEW ==================== */
+let current=null, sortKey='NUM', grouped=false;   // current team, active sort column, group-by-position toggle
+// Switch from the home view to a single team's roster page.
 function openTeam(abbr){
-  const t = DATA()[abbr]; if(!t) return;
-  current=t; setTheme(t.color,t.accent);
+  const t = DATA()[abbr]; if(!t) return;          // ignore unknown abbreviations
+  current=t; setTheme(t.color,t.accent);          // recolor the whole page to the team
   $('home').classList.add('hidden'); $('detail').classList.remove('hidden');
-  $('back').style.display='inline-block'; $('tabs').style.display='none';
+  $('back').style.display='inline-block'; $('tabs').style.display='none';  // show Back, hide section tabs
   window.scrollTo(0,0);
   $('title').textContent = `${t.abbr} · ${t.nickname}`;
   $('teamhead').innerHTML = `
@@ -337,7 +347,8 @@ function openTeam(abbr){
     <div class="tsub">${season} · ${t.players.length} players</div>
     ${t.champion?`<div class="champbadge">🏆 ${season} NBA Champions</div>`:''}
     <div class="wm">${t.abbr}</div>`;
-  const hs = t.players.map(p=>toIn(p.height)).filter(Boolean);
+  // summary tiles: player count, tallest player, average height, top scorer
+  const hs = t.players.map(p=>toIn(p.height)).filter(Boolean);   // heights in inches
   const tallest = t.players.reduce((m,p)=>toIn(p.height)>toIn(m.height)?p:m,t.players[0]);
   const scorer = t.players.filter(p=>p.s).reduce((m,p)=>(p.s.PTS>((m.s&&m.s.PTS)||-1)?p:m),t.players[0]);
   $('teammeta').innerHTML = `
@@ -348,6 +359,7 @@ function openTeam(abbr){
   renderRoster();
 }
 
+// Build one player card. `s` is the per-game stats object (empty when the player has none).
 function card(p){
   const s=p.s||{};
   return `<div class="player">
@@ -369,15 +381,17 @@ function card(p){
       <span>FG <b>${pct(s.FG_PCT)}</b></span><span>3P <b>${pct(s.FG3_PCT)}</b></span>
     </div></div>`;
 }
+// Comparator factory for the sort buttons: jersey # (asc), height (desc), or a stat (desc).
 const cmp = key => (a,b)=>{
   if(key==='NUM') return (parseInt(a.num||'999')||999)-(parseInt(b.num||'999')||999);
   if(key==='HEIGHT_IN') return toIn(b.height)-toIn(a.height);
-  return ((b.s&&b.s[key])??-1)-((a.s&&a.s[key])??-1);
+  return ((b.s&&b.s[key])??-1)-((a.s&&a.s[key])??-1);   // players without stats sort last
 };
+// Render the roster: either one flat grid, or grouped into Guards/Forwards/Centers.
 function renderRoster(){
   const ps=[...current.players].sort(cmp(sortKey));
   if(!grouped){ $('roster').innerHTML = `<div class="grid">${ps.map(card).join('')}</div>`; return; }
-  const bucket = p => p.pos[0]==='G'?'Guards':p.pos[0]==='F'?'Forwards':p.pos[0]==='C'?'Centers':'Other';
+  const bucket = p => p.pos[0]==='G'?'Guards':p.pos[0]==='F'?'Forwards':p.pos[0]==='C'?'Centers':'Other';  // by first pos letter
   const order=['Guards','Forwards','Centers','Other'];
   $('roster').innerHTML = order.map(g=>{
     const grp=ps.filter(p=>bucket(p)===g); if(!grp.length) return '';
@@ -385,6 +399,7 @@ function renderRoster(){
   }).join('');
 }
 
+// Return from a team page to the home view and reset the theme to the default blue.
 function goHome(){
   $('detail').classList.add('hidden'); $('home').classList.remove('hidden');
   $('back').style.display='none'; $('tabs').style.display='flex';
@@ -392,33 +407,37 @@ function goHome(){
   window.scrollTo(0,0); setActiveTab('sec-overview');
 }
 
-/* ---------- events ---------- */
+/* ==================== EVENT WIRING ==================== */
+// Clicking a team card or a leaderboard row navigates via the URL hash (see route()).
 $('teams').addEventListener('click',e=>{const c=e.target.closest('.team'); if(c) location.hash=c.dataset.abbr;});
 $('boards').addEventListener('click',e=>{const r=e.target.closest('.lrow'); if(r) location.hash=r.dataset.abbr;});
 $('back').addEventListener('click',goHome);
+// Roster controls: the "Group by position" toggle, plus the sort buttons.
 $('controls').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   if(b.hasAttribute('data-group')){ grouped=!grouped; b.classList.toggle('active',grouped); renderRoster(); return; }
-  sortKey=b.dataset.sort;
+  sortKey=b.dataset.sort;                                        // remember which column to sort by
   document.querySelectorAll('#controls button[data-sort]').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); renderRoster();
 });
-/* ---------- search dropdown (teams + players) ---------- */
+/* ==================== SEARCH DROPDOWN (teams + players) ==================== */
 const sug=$('suggest');
-let sgItems=[], sgIdx=-1;
+let sgItems=[], sgIdx=-1;   // current suggestion list and the highlighted index (for arrow keys)
+// Build up to 10 ranked matches for a query, searching both team names and player names.
 function buildSuggest(q){
   q=q.trim().toLowerCase(); if(!q) return [];
   const teams=Object.values(DATA()), res=[];
-  for(const t of teams){
+  for(const t of teams){                                     // team matches
     const hay=(t.name+' '+t.abbr).toLowerCase();
     if(hay.includes(q)) res.push({type:'team',t,
       rank:(t.name.toLowerCase().startsWith(q)||t.abbr.toLowerCase().startsWith(q))?0:1,label:t.name});
   }
-  for(const t of teams) for(const p of t.players){
+  for(const t of teams) for(const p of t.players){           // player matches
     const n=p.name.toLowerCase();
     if(n.includes(q)) res.push({type:'player',t,p,
       rank:n.split(' ').some(w=>w.startsWith(q))?2:3,label:p.name});
   }
+  // rank order: team prefix(0) < team contains(1) < player word-prefix(2) < player contains(3), then A-Z
   res.sort((a,b)=> a.rank-b.rank || a.label.localeCompare(b.label));
   return res.slice(0,10);
 }
@@ -435,7 +454,9 @@ function renderSuggest(q){
   sug.classList.remove('hidden');
 }
 function closeSuggest(){ sug.classList.add('hidden'); sug.innerHTML=''; sgIdx=-1; }
+// Pick a suggestion: clear the box and navigate to that team (players jump to their team).
 function chooseSuggest(i){ const x=sgItems[i]; if(!x) return; $('search').value=''; closeSuggest(); location.hash=x.t.abbr; }
+// Move the highlight up/down with wraparound (for ArrowUp/ArrowDown).
 function moveSuggest(d){
   if(sug.classList.contains('hidden')||!sgItems.length) return;
   sgIdx=(sgIdx+d+sgItems.length)%sgItems.length;
@@ -443,46 +464,53 @@ function moveSuggest(d){
   rows.forEach((el,i)=>el.classList.toggle('hi',i===sgIdx));
   if(rows[sgIdx]) rows[sgIdx].scrollIntoView({block:'nearest'});
 }
+// mousedown (not click) so we select before the input's blur closes the dropdown
 sug.addEventListener('mousedown',e=>{ const r=e.target.closest('.sg'); if(r){ e.preventDefault(); chooseSuggest(+r.dataset.i); } });
 
+// Typing updates the dropdown, and (on the home view) also filters the team grid.
 $('search').addEventListener('input',e=>{
   renderSuggest(e.target.value);
   if(!$('home').classList.contains('hidden')) renderTeams(e.target.value);
 });
 $('search').addEventListener('focus',e=>{ if(e.target.value.trim()) renderSuggest(e.target.value); });
+// Keyboard control of the dropdown: arrows to move, Enter to choose, Esc to close.
 $('search').addEventListener('keydown',e=>{
   if(e.key==='ArrowDown'){ e.preventDefault(); moveSuggest(1); }
   else if(e.key==='ArrowUp'){ e.preventDefault(); moveSuggest(-1); }
   else if(e.key==='Enter'){ if(sgItems.length){ e.preventDefault(); chooseSuggest(sgIdx>=0?sgIdx:0); } }
   else if(e.key==='Escape'){ closeSuggest(); }
 });
-document.addEventListener('click',e=>{ if(!e.target.closest('.searchwrap')) closeSuggest(); });
+document.addEventListener('click',e=>{ if(!e.target.closest('.searchwrap')) closeSuggest(); }); // click-away closes
 
+// Changing the season reloads the current view (team page or home) for the new season.
 $('season').addEventListener('change',e=>{
   season=e.target.value; closeSuggest();
   if(!$('detail').classList.contains('hidden') && current){
-    const t=DATA()[current.abbr]; if(t) openTeam(current.abbr); else goHome();
+    const t=DATA()[current.abbr]; if(t) openTeam(current.abbr); else goHome();  // stay on the same team if it exists
   } else renderHome($('search').value);
 });
 
-/* ---------- section tabs + scroll-spy ---------- */
+/* ==================== SECTION TABS + SCROLL-SPY ==================== */
 const tabBtns=[...document.querySelectorAll('#tabs button')];
+// Highlight the tab whose section id matches.
 function setActiveTab(id){ tabBtns.forEach(b=>b.classList.toggle('active', b.dataset.target===id)); }
+// Clicking a tab smooth-scrolls to its section.
 $('tabs').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   const el=document.getElementById(b.dataset.target);
   if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
   setActiveTab(b.dataset.target);
 });
+// Scroll-spy: as sections cross the middle of the viewport, activate the matching tab.
 if(typeof IntersectionObserver!=='undefined'){
   const spy=new IntersectionObserver(entries=>{
-    if($('home').classList.contains('hidden')) return;
+    if($('home').classList.contains('hidden')) return;   // ignore while on a team page
     entries.forEach(en=>{ if(en.isIntersecting) setActiveTab(en.target.id); });
-  },{rootMargin:'-45% 0px -45% 0px',threshold:0});
+  },{rootMargin:'-45% 0px -45% 0px',threshold:0});        // "middle band" of the screen
   ['sec-overview','sec-leaders','sec-teams'].forEach(id=>{ const el=document.getElementById(id); if(el) spy.observe(el); });
 }
 
-/* ---------- typewriter description ---------- */
+/* ==================== TYPEWRITER TAGLINE ==================== */
 const TW=[
   "Every team. Every roster.",
   "Positions, heights, and per-game stats.",
@@ -490,31 +518,35 @@ const TW=[
   "Five seasons of data, one click away.",
   "Powered by nba_api."
 ];
+// Respect the OS "reduce motion" setting: show a static line instead of animating.
 const REDUCE = typeof window.matchMedia==='function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Type each phrase out, pause, delete it, then move to the next (looping forever).
 (function typewriter(el){
   if(!el) return;
   if(REDUCE){ el.textContent=TW[0]; return; }
-  let pi=0, ci=0, del=false;
+  let pi=0, ci=0, del=false;                 // phrase index, char count, deleting?
   (function tick(){
     const full=TW[pi]; ci += del?-1:1;
     el.textContent=full.slice(0,Math.max(0,ci));
-    let delay=del?18:28;
-    if(!del && ci>=full.length){ delay=1600; del=true; }
-    else if(del && ci<=0){ del=false; pi=(pi+1)%TW.length; delay=320; }
+    let delay=del?18:28;                      // delete faster than typing
+    if(!del && ci>=full.length){ delay=1600; del=true; }              // finished typing -> hold, then delete
+    else if(del && ci<=0){ del=false; pi=(pi+1)%TW.length; delay=320; } // finished deleting -> next phrase
     setTimeout(tick,delay);
   })();
 })($('typewriter'));
 
-/* ---------- about popover ---------- */
-$('abtn').addEventListener('click',e=>{ e.stopPropagation(); $('abox').classList.toggle('hidden'); });
-document.addEventListener('click',e=>{ if(!e.target.closest('#about')) $('abox').classList.add('hidden'); });
+/* ==================== ABOUT POPOVER ==================== */
+$('abtn').addEventListener('click',e=>{ e.stopPropagation(); $('abox').classList.toggle('hidden'); });  // toggle box
+document.addEventListener('click',e=>{ if(!e.target.closest('#about')) $('abox').classList.add('hidden'); }); // click-away closes
 
+/* ==================== ROUTING ==================== */
+// The view is driven by the URL hash: "#NYK" opens a team, empty hash shows home.
 function route(){
   const abbr=location.hash.replace('#','').toUpperCase();
   if(abbr && DATA()[abbr]) openTeam(abbr); else goHome();
 }
 window.addEventListener('hashchange',route);
-renderHome(); route();
+renderHome(); route();   // initial paint
 </script>
 </body>
 </html>
