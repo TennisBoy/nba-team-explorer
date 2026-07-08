@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 NBA Champions — New York Knicks</title>
+<style>
+  :root{
+    --knicks-blue:#006BB6;
+    --knicks-orange:#F58426;
+    --ink:#0b1622;
+    --muted:#5b6b7b;
+    --line:#e4e9ef;
+    --card:#ffffff;
+    --bg:#f4f6f9;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.5;
+  }
+  header{
+    background:linear-gradient(135deg,var(--knicks-blue),#0a4f86);
+    color:#fff;padding:44px 20px 40px;text-align:center;position:relative;overflow:hidden;
+  }
+  header::after{
+    content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(45deg,transparent,transparent 22px,rgba(245,132,38,.08) 22px,rgba(245,132,38,.08) 24px);
+  }
+  header .inner{position:relative;z-index:1}
+  .crown{font-size:40px;line-height:1}
+  header h1{font-size:clamp(28px,5vw,44px);font-weight:800;letter-spacing:-.5px;margin:8px 0 4px}
+  header .sub{color:#cfe4f4;font-size:16px}
+  .badge{
+    display:inline-block;margin-top:16px;background:var(--knicks-orange);color:#231400;
+    font-weight:700;font-size:13px;letter-spacing:.4px;text-transform:uppercase;
+    padding:7px 16px;border-radius:999px;
+  }
+  main{max-width:1000px;margin:-24px auto 60px;padding:0 16px;position:relative;z-index:2}
+  .meta{
+    display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:22px;
+  }
+  .stat{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:12px 18px;text-align:center;min-width:130px;box-shadow:0 1px 3px rgba(0,0,0,.04);
+  }
+  .stat b{display:block;font-size:22px;color:var(--knicks-blue)}
+  .stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px}
+  .controls button{
+    border:1px solid var(--line);background:var(--card);color:var(--muted);
+    font-size:12px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;
+    text-transform:uppercase;letter-spacing:.4px;transition:all .12s;
+  }
+  .controls button:hover{border-color:var(--knicks-blue);color:var(--knicks-blue)}
+  .controls button.active{background:var(--knicks-blue);color:#fff;border-color:var(--knicks-blue)}
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;
+  }
+  .player{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:transform .12s,box-shadow .12s;
+    border-top:4px solid var(--knicks-orange);
+  }
+  .player:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,107,182,.14)}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .num{
+    font-size:12px;font-weight:700;color:var(--knicks-orange);
+  }
+  .posbadge{
+    font-size:11px;font-weight:700;color:#fff;background:var(--knicks-blue);
+    padding:3px 9px;border-radius:6px;white-space:nowrap;
+  }
+  .name{font-size:18px;font-weight:700;margin:2px 0 12px}
+  .rows{display:flex;gap:8px;margin-bottom:10px}
+  .cell{flex:1;background:var(--bg);border-radius:8px;padding:8px 6px;text-align:center}
+  .cell span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .cell b{font-size:17px;color:var(--knicks-blue)}
+  .subline{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);
+    border-top:1px dashed var(--line);padding-top:8px;margin-top:2px}
+  .subline span b{color:var(--ink);font-weight:700}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:0 20px 40px}
+  footer a{color:var(--knicks-blue)}
+  table.legend{margin:0 auto;font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="inner">
+    <div class="crown">🏆</div>
+    <h1>New York Knicks</h1>
+    <div class="sub">2026 NBA Champions &nbsp;·&nbsp; def. San Antonio Spurs 4–1</div>
+    <div class="badge">Finals MVP: Jalen Brunson</div>
+  </div>
+</header>
+
+<main>
+  <div class="meta">
+    <div class="stat"><b id="s-count">—</b><span>Players</span></div>
+    <div class="stat"><b id="s-tall">—</b><span>Tallest</span></div>
+    <div class="stat"><b id="s-avg">—</b><span>Avg Height</span></div>
+    <div class="stat"><b>3rd</b><span>NBA Title</span></div>
+  </div>
+
+  <div class="controls" id="controls">
+    <button data-sort="NUM" class="active">Jersey #</button>
+    <button data-sort="PTS">Points</button>
+    <button data-sort="REB">Rebounds</button>
+    <button data-sort="AST">Assists</button>
+    <button data-sort="HEIGHT_IN">Height</button>
+  </div>
+
+  <div class="grid" id="roster"></div>
+</main>
+
+<footer>
+  Roster data via <a href="https://github.com/swar/nba_api" target="_blank" rel="noopener">nba_api</a> · 2025–26 season.
+  Championship result via NBA.com &amp; ESPN.
+</footer>
+
+<script>
+const roster = [
+  {"PLAYER":"Jordan Clarkson","NUM":"00","POSITION":"G","HEIGHT":"6-5","WEIGHT":"194","AGE":34},
+  {"PLAYER":"Dillon Jones","NUM":"","POSITION":"F","HEIGHT":"6-5","WEIGHT":"235","AGE":24},
+  {"PLAYER":"Miles McBride","NUM":"2","POSITION":"G","HEIGHT":"6-2","WEIGHT":"195","AGE":25},
+  {"PLAYER":"Josh Hart","NUM":"3","POSITION":"G","HEIGHT":"6-5","WEIGHT":"215","AGE":31},
+  {"PLAYER":"Pacôme Dadiet","NUM":"4","POSITION":"F","HEIGHT":"6-9","WEIGHT":"210","AGE":20},
+  {"PLAYER":"Jose Alvarado","NUM":"5","POSITION":"G","HEIGHT":"6-0","WEIGHT":"179","AGE":28},
+  {"PLAYER":"OG Anunoby","NUM":"8","POSITION":"F-G","HEIGHT":"6-7","WEIGHT":"240","AGE":28},
+  {"PLAYER":"Kevin McCullar Jr.","NUM":"9","POSITION":"G","HEIGHT":"6-6","WEIGHT":"210","AGE":25},
+  {"PLAYER":"Jalen Brunson","NUM":"11","POSITION":"G","HEIGHT":"6-2","WEIGHT":"190","AGE":29},
+  {"PLAYER":"Tyler Kolek","NUM":"13","POSITION":"G","HEIGHT":"6-2","WEIGHT":"195","AGE":25},
+  {"PLAYER":"Jeremy Sochan","NUM":"20","POSITION":"F","HEIGHT":"6-8","WEIGHT":"230","AGE":23},
+  {"PLAYER":"Mitchell Robinson","NUM":"23","POSITION":"C-F","HEIGHT":"7-0","WEIGHT":"240","AGE":28},
+  {"PLAYER":"Mikal Bridges","NUM":"25","POSITION":"G-F","HEIGHT":"6-6","WEIGHT":"209","AGE":29},
+  {"PLAYER":"Karl-Anthony Towns","NUM":"32","POSITION":"C-F","HEIGHT":"7-0","WEIGHT":"248","AGE":30},
+  {"PLAYER":"Landry Shamet","NUM":"44","POSITION":"G","HEIGHT":"6-5","WEIGHT":"190","AGE":29},
+  {"PLAYER":"Trey Jemison III","NUM":"50","POSITION":"C","HEIGHT":"6-10","WEIGHT":"270","AGE":26},
+  {"PLAYER":"Mohamed Diawara","NUM":"51","POSITION":"F","HEIGHT":"6-9","WEIGHT":"225","AGE":21},
+  {"PLAYER":"Ariel Hukporti","NUM":"55","POSITION":"C","HEIGHT":"7-0","WEIGHT":"246","AGE":24}
+];
+
+// 2025-26 per-game stats, keyed by player name
+const stats = {
+  "Jordan Clarkson":{GP:72,MIN:17.8,PTS:8.6,REB:1.8,AST:1.3,STL:0.4,BLK:0.1,FG_PCT:.451,FG3_PCT:.327,FT_PCT:.83},
+  "Dillon Jones":{GP:7,MIN:5.6,PTS:1.3,REB:1.0,AST:0.6,STL:0.4,BLK:0.0,FG_PCT:.222,FG3_PCT:.20,FT_PCT:1.0},
+  "Miles McBride":{GP:41,MIN:26.3,PTS:12.0,REB:2.4,AST:2.6,STL:0.9,BLK:0.2,FG_PCT:.423,FG3_PCT:.413,FT_PCT:.787},
+  "Josh Hart":{GP:66,MIN:30.2,PTS:12.0,REB:7.4,AST:4.8,STL:1.1,BLK:0.3,FG_PCT:.508,FG3_PCT:.413,FT_PCT:.72},
+  "Pacôme Dadiet":{GP:29,MIN:4.7,PTS:1.7,REB:0.9,AST:0.4,STL:0.1,BLK:0.0,FG_PCT:.333,FG3_PCT:.219,FT_PCT:.818},
+  "Jose Alvarado":{GP:28,MIN:16.9,PTS:6.6,REB:2.0,AST:3.8,STL:1.0,BLK:0.1,FG_PCT:.414,FG3_PCT:.33,FT_PCT:.682},
+  "OG Anunoby":{GP:67,MIN:33.2,PTS:16.7,REB:5.2,AST:2.2,STL:1.6,BLK:0.7,FG_PCT:.484,FG3_PCT:.386,FT_PCT:.828},
+  "Kevin McCullar Jr.":{GP:21,MIN:7.4,PTS:2.4,REB:1.3,AST:1.0,STL:0.4,BLK:0.0,FG_PCT:.426,FG3_PCT:.333,FT_PCT:.40},
+  "Jalen Brunson":{GP:74,MIN:35.0,PTS:26.0,REB:3.3,AST:6.8,STL:0.8,BLK:0.1,FG_PCT:.467,FG3_PCT:.369,FT_PCT:.841},
+  "Tyler Kolek":{GP:62,MIN:11.7,PTS:4.4,REB:1.6,AST:2.7,STL:0.4,BLK:0.1,FG_PCT:.435,FG3_PCT:.386,FT_PCT:.70},
+  "Jeremy Sochan":{GP:16,MIN:6.9,PTS:2.8,REB:2.1,AST:0.8,STL:0.4,BLK:0.1,FG_PCT:.567,FG3_PCT:.20,FT_PCT:.80},
+  "Mitchell Robinson":{GP:60,MIN:19.6,PTS:5.7,REB:8.8,AST:0.9,STL:0.9,BLK:1.2,FG_PCT:.723,FG3_PCT:.0,FT_PCT:.408},
+  "Mikal Bridges":{GP:82,MIN:32.8,PTS:14.4,REB:3.8,AST:3.7,STL:1.3,BLK:0.8,FG_PCT:.49,FG3_PCT:.371,FT_PCT:.827},
+  "Karl-Anthony Towns":{GP:75,MIN:31.0,PTS:20.1,REB:11.9,AST:3.0,STL:0.9,BLK:0.5,FG_PCT:.501,FG3_PCT:.368,FT_PCT:.858},
+  "Landry Shamet":{GP:51,MIN:23.0,PTS:9.3,REB:1.8,AST:1.4,STL:0.6,BLK:0.2,FG_PCT:.437,FG3_PCT:.392,FT_PCT:.711},
+  "Trey Jemison III":{GP:13,MIN:6.3,PTS:1.0,REB:1.4,AST:0.4,STL:0.1,BLK:0.2,FG_PCT:.60,FG3_PCT:.0,FT_PCT:1.0},
+  "Mohamed Diawara":{GP:69,MIN:9.2,PTS:3.6,REB:1.4,AST:0.8,STL:0.2,BLK:0.1,FG_PCT:.423,FG3_PCT:.369,FT_PCT:.75},
+  "Ariel Hukporti":{GP:54,MIN:9.2,PTS:2.2,REB:2.9,AST:0.5,STL:0.2,BLK:0.5,FG_PCT:.563,FG3_PCT:.25,FT_PCT:.788}
+};
+
+const toInches = h => { const [f,i]=h.split('-').map(Number); return f*12+i; };
+const fmt = inch => `${Math.floor(inch/12)}-${inch%12}`;
+const pct = v => v==null ? '—' : (v*100).toFixed(1)+'%';
+
+// merge
+roster.forEach(p => { p.s = stats[p.PLAYER] || {}; p.HEIGHT_IN = toInches(p.HEIGHT); });
+
+const grid = document.getElementById('roster');
+function render(list){
+  grid.innerHTML = list.map(p => {
+    const s = p.s;
+    return `
+    <div class="player">
+      <div class="head">
+        <div class="num">#${p.NUM || '—'}</div>
+        <div class="posbadge">${p.POSITION} · ${p.HEIGHT}</div>
+      </div>
+      <div class="name">${p.PLAYER}</div>
+      <div class="rows">
+        <div class="cell"><span>PTS</span><b>${s.PTS??'—'}</b></div>
+        <div class="cell"><span>REB</span><b>${s.REB??'—'}</b></div>
+        <div class="cell"><span>AST</span><b>${s.AST??'—'}</b></div>
+      </div>
+      <div class="subline">
+        <span>GP <b>${s.GP??'—'}</b></span>
+        <span>MIN <b>${s.MIN??'—'}</b></span>
+        <span>FG <b>${pct(s.FG_PCT)}</b></span>
+        <span>3P <b>${pct(s.FG3_PCT)}</b></span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function sortBy(key){
+  const list = [...roster].sort((a,b)=>{
+    if(key==='NUM') return (parseInt(a.NUM||'999'))-(parseInt(b.NUM||'999'));
+    if(key==='HEIGHT_IN') return b.HEIGHT_IN-a.HEIGHT_IN;
+    return (b.s[key]??-1)-(a.s[key]??-1);
+  });
+  render(list);
+}
+
+document.getElementById('controls').addEventListener('click', e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  document.querySelectorAll('#controls button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  sortBy(e.target.dataset.sort);
+});
+
+sortBy('NUM');
+
+// summary stats
+document.getElementById('s-count').textContent = roster.length;
+const inches = roster.map(p => p.HEIGHT_IN);
+const tallest = roster[inches.indexOf(Math.max(...inches))];
+document.getElementById('s-tall').textContent = tallest.HEIGHT + '"';
+document.getElementById('s-avg').textContent = fmt(Math.round(inches.reduce((a,b)=>a+b,0)/inches.length)) + '"';
+</script>
+</body>
+</html>
