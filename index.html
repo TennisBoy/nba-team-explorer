@@ -118,6 +118,22 @@
   .stat b{display:block;font-size:20px;color:var(--tc)}
   .stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 
+  /* team vs NBA averages */
+  .avghead{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);
+    margin:6px 0 12px;display:flex;align-items:center;gap:10px}
+  .avghead span{font-weight:500;text-transform:none;letter-spacing:0;font-size:12px}
+  .avghead::after{content:"";flex:1;height:1px;background:var(--line)}
+  .avgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(116px,1fr));gap:10px;margin-bottom:22px}
+  .avgcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 10px;text-align:center}
+  .avglabel{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .avgteam{font-size:22px;font-weight:800;color:var(--tc);line-height:1.1;margin:3px 0 2px}
+  .avgnba{font-size:11px;color:var(--muted)}
+  .avgbar{height:5px;border-radius:3px;background:var(--line);margin:8px 2px 0;position:relative;overflow:hidden}
+  .avgbar i{position:absolute;left:0;top:0;bottom:0;background:var(--tc);border-radius:3px}
+  .avgdiff{font-weight:700;font-size:10px}
+  .avgdiff.up{color:#1a8f4a}
+  .avgdiff.down{color:#c23b3b}
+
   .controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px}
   .controls button{border:1px solid var(--line);background:var(--card);color:var(--muted);
     font-size:12px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;
@@ -237,6 +253,8 @@
   <section id="detail" class="hidden">
     <div class="teamhead" id="teamhead"></div>
     <div class="meta" id="teammeta"></div>
+    <div class="avghead">Averages <span>· team vs NBA, per player per game</span></div>
+    <div class="avgs" id="teamavg"></div>
     <div class="controls" id="controls">
       <button data-sort="NUM" class="active">Jersey #</button>
       <button data-sort="PTS">Points</button>
@@ -332,6 +350,41 @@ function renderHome(filter=''){
   renderTeams(filter);
 }
 
+/* ==================== TEAM vs NBA AVERAGES ==================== */
+const AVG_KEYS=['PTS','REB','AST','STL','BLK','FG_PCT','FG3_PCT','FT_PCT'];
+// Mean of each stat over the given players (only those with recorded stats count).
+function avgStats(players){
+  const sum={}, n={}; AVG_KEYS.forEach(k=>{sum[k]=0;n[k]=0;});
+  players.forEach(p=>{ if(p.s) AVG_KEYS.forEach(k=>{ if(p.s[k]!=null){ sum[k]+=p.s[k]; n[k]++; } }); });
+  const out={}; AVG_KEYS.forEach(k=> out[k]=n[k]?sum[k]/n[k]:0); return out;
+}
+// League averages are the same for every team in a season, so cache them per season.
+const _leagueAvg={};
+function leagueAverages(){
+  if(_leagueAvg[season]) return _leagueAvg[season];
+  const all=[]; for(const t of Object.values(DATA())) for(const p of t.players) all.push(p);
+  return _leagueAvg[season]=avgStats(all);
+}
+// Render the compare-cards: team average, NBA average, delta, and a bar (team relative to 2x NBA).
+function renderAverages(t){
+  const nba=leagueAverages(), tm=avgStats(t.players);
+  const LABELS={PTS:'Points',REB:'Rebounds',AST:'Assists',STL:'Steals',BLK:'Blocks',FG_PCT:'FG%',FG3_PCT:'3P%',FT_PCT:'FT%'};
+  const isPct=k=>k.endsWith('PCT');
+  const show=(k,v)=> isPct(k)?(v*100).toFixed(1)+'%':v.toFixed(1);
+  $('teamavg').innerHTML = AVG_KEYS.map(k=>{
+    const tv=tm[k], nv=nba[k], up=tv>=nv;
+    const d=isPct(k)?(tv-nv)*100:tv-nv;                       // delta (percentage points for %)
+    const diff=(d>=0?'+':'')+d.toFixed(1);
+    const w=Math.max(3,Math.min(100, nv? (tv/(nv*2))*100 : 50)); // bar: 50% == league average
+    return `<div class="avgcard">
+      <div class="avglabel">${LABELS[k]}</div>
+      <div class="avgteam">${show(k,tv)}</div>
+      <div class="avgnba">NBA ${show(k,nv)} <span class="avgdiff ${up?'up':'down'}">${up?'▲':'▼'}${diff}</span></div>
+      <div class="avgbar"><i style="width:${w}%"></i></div>
+    </div>`;
+  }).join('');
+}
+
 /* ==================== TEAM DETAIL VIEW ==================== */
 let current=null, sortKey='NUM', grouped=false;   // current team, active sort column, group-by-position toggle
 // Switch from the home view to a single team's roster page.
@@ -356,6 +409,7 @@ function openTeam(abbr){
     <div class="stat"><b>${tallest.height}"</b><span>Tallest</span></div>
     <div class="stat"><b>${hs.length?fmtH(Math.round(hs.reduce((a,b)=>a+b,0)/hs.length)):'-'}"</b><span>Avg Height</span></div>
     <div class="stat"><b>${scorer.s?scorer.s.PTS:'-'}</b><span>Top Scorer PPG</span></div>`;
+  renderAverages(t);   // team vs NBA averages panel
   renderRoster();
 }
 
