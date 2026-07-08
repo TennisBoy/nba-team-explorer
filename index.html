@@ -163,6 +163,23 @@
   .about .abox a{color:var(--tc);text-decoration:none;word-break:break-all}
   .about .abox a:hover{text-decoration:underline}
   .about .abox .lbl{color:var(--muted);font-size:11px;margin-top:7px}
+
+  /* mobile */
+  @media (max-width:640px){
+    .topbar{padding:11px 14px;gap:8px}
+    .topbar h1{font-size:17px}
+    .topbar label{display:none}
+    .tabs button{padding:6px 11px;font-size:12px}
+    .searchwrap{flex:1 1 100%}
+    .topbar input{width:100%}
+    .suggest{width:100%;max-width:none}
+    .hero{min-height:auto;padding:40px 22px}
+    .hero .scrolldown{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
 </style>
 </head>
 <body>
@@ -286,10 +303,7 @@ function renderBoards(){
     leaderRows('AST','Assists / game') +
     leaderRows('BLK','Blocks / game');
 }
-function renderHome(filter=''){
-  const champ = Object.values(DATA()).find(t=>t.champion);
-  $('homelead').innerHTML = `${season} season · ${champ?`🏆 <b>${champ.name}</b> champions · `:''}click any team for its roster, positions, heights &amp; stats`;
-  renderBoards();
+function renderTeams(filter=''){
   const list = Object.values(DATA())
     .filter(t => (t.name+t.abbr).toLowerCase().includes(filter.toLowerCase()))
     .sort((a,b)=> b.champion-a.champion || a.name.localeCompare(b.name));
@@ -301,6 +315,12 @@ function renderHome(filter=''){
       <div><div class="tname">${t.city}<br>${t.nickname}</div>
         ${t.champion?`<div class="champtag">${season.split('-')[0].slice(0,2)+season.split('-')[1]} Champions</div>`:''}</div>
     </div>`).join('');
+}
+function renderHome(filter=''){
+  const champ = Object.values(DATA()).find(t=>t.champion);
+  $('homelead').innerHTML = `${season} season · ${champ?`🏆 <b>${champ.name}</b> champions · `:''}click any team for its roster, positions, heights &amp; stats`;
+  renderBoards();
+  renderTeams(filter);
 }
 
 /* ---------- TEAM DETAIL ---------- */
@@ -427,7 +447,7 @@ sug.addEventListener('mousedown',e=>{ const r=e.target.closest('.sg'); if(r){ e.
 
 $('search').addEventListener('input',e=>{
   renderSuggest(e.target.value);
-  if(!$('home').classList.contains('hidden')) renderHome(e.target.value);
+  if(!$('home').classList.contains('hidden')) renderTeams(e.target.value);
 });
 $('search').addEventListener('focus',e=>{ if(e.target.value.trim()) renderSuggest(e.target.value); });
 $('search').addEventListener('keydown',e=>{
@@ -470,8 +490,10 @@ const TW=[
   "Five seasons of data, one click away.",
   "Powered by nba_api."
 ];
+const REDUCE = typeof window.matchMedia==='function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 (function typewriter(el){
   if(!el) return;
+  if(REDUCE){ el.textContent=TW[0]; return; }
   let pi=0, ci=0, del=false;
   (function tick(){
     const full=TW[pi]; ci += del?-1:1;
