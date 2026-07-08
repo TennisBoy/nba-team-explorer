@@ -149,6 +149,20 @@
   .subline span b{color:var(--ink);font-weight:700}
 
   footer{text-align:center;color:var(--muted);font-size:12px;padding:0 20px 30px}
+
+  /* floating about button */
+  .about{position:fixed;left:14px;bottom:14px;z-index:40}
+  .about .abtn{background:rgba(11,22,34,.4);color:#fff;border:none;border-radius:999px;
+    padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;opacity:.45;transition:opacity .2s;
+    backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+  .about .abtn:hover{opacity:1}
+  .about .abox{position:absolute;left:0;bottom:34px;background:var(--card);color:var(--ink);
+    border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 28px rgba(0,0,0,.28);
+    padding:12px 14px;width:210px;line-height:1.5;font-size:12px}
+  .about .abox b{display:block;font-size:13px;margin-bottom:3px}
+  .about .abox a{color:var(--tc);text-decoration:none;word-break:break-all}
+  .about .abox a:hover{text-decoration:underline}
+  .about .abox .lbl{color:var(--muted);font-size:11px;margin-top:7px}
 </style>
 </head>
 <body>
@@ -220,6 +234,15 @@
 </main>
 
 <footer>Data via <a href="https://github.com/swar/nba_api">nba_api</a> · headshots via cdn.nba.com. Champions verified via NBA.com/ESPN.</footer>
+
+<div class="about" id="about">
+  <div class="abox hidden" id="abox">
+    <b>William Yin</b>
+    <a href="mailto:william.xhyin@gmail.com">william.xhyin@gmail.com</a>
+    <div class="lbl">Data: <a href="https://github.com/swar/nba_api" target="_blank" rel="noopener">nba api</a></div>
+  </div>
+  <button class="abtn" id="abtn">About</button>
+</div>
 
 <script src="nba_data.js"></script>
 <script>
@@ -459,6 +482,10 @@ const TW=[
     setTimeout(tick,delay);
   })();
 })($('typewriter'));
+
+/* ---------- about popover ---------- */
+$('abtn').addEventListener('click',e=>{ e.stopPropagation(); $('abox').classList.toggle('hidden'); });
+document.addEventListener('click',e=>{ if(!e.target.closest('#about')) $('abox').classList.add('hidden'); });
 
 function route(){
   const abbr=location.hash.replace('#','').toUpperCase();
