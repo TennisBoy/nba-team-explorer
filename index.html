@@ -529,7 +529,7 @@ const REDUCE = typeof window.matchMedia==='function' && window.matchMedia('(pref
     const full=TW[pi]; ci += del?-1:1;
     el.textContent=full.slice(0,Math.max(0,ci));
     let delay=del?18:28;                      // delete faster than typing
-    if(!del && ci>=full.length){ delay=1600; del=true; }              // finished typing -> hold, then delete
+    if(!del && ci>=full.length){ delay=1100; del=true; }              // finished typing -> hold, then delete
     else if(del && ci<=0){ del=false; pi=(pi+1)%TW.length; delay=320; } // finished deleting -> next phrase
     setTimeout(tick,delay);
   })();
