@@ -51,7 +51,9 @@
   .lrow{display:flex;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid var(--line);cursor:pointer}
   .lrow:hover{background:var(--bg)}
   .lrow .rk{font-weight:800;color:var(--muted);width:18px;text-align:center;font-size:13px}
-  .lrow img{width:34px;height:26px;object-fit:cover;border-radius:4px;background:var(--bg)}
+  .lrow .limg{position:relative;width:34px;height:26px;border-radius:4px;overflow:hidden;flex:none;
+    display:flex;align-items:center;justify-content:center;background:var(--tc);color:#fff;font-weight:800;font-size:10px}
+  .lrow .limg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .lrow .ln{flex:1;font-size:13px;font-weight:600;line-height:1.2}
   .lrow .lt{font-size:11px;color:var(--muted)}
   .lrow .lv{font-weight:800;color:var(--tc);font-size:15px}
@@ -99,7 +101,9 @@
     transition:transform .12s,box-shadow .12s}
   .player:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.12)}
   .head{display:flex;gap:12px;align-items:center;margin-bottom:12px}
-  .shot{width:56px;height:42px;object-fit:cover;border-radius:8px;background:var(--bg);flex:none}
+  .shot{position:relative;width:56px;height:42px;border-radius:8px;overflow:hidden;flex:none;
+    display:flex;align-items:center;justify-content:center;background:var(--tc);color:#fff;font-weight:800;font-size:14px}
+  .shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .headtxt{flex:1;min-width:0}
   .num{font-size:11px;font-weight:700;color:var(--muted)}
   .name{font-size:16px;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -196,7 +200,7 @@ function leaderRows(stat, label){
   return `<div class="board"><h3>${label}</h3>` + all.slice(0,5).map((x,i)=>`
     <div class="lrow" data-abbr="${x.t.abbr}">
       <div class="rk">${i+1}</div>
-      <img src="${shot(x.p.id)}" onerror="${FALLBACK}" alt="">
+      <div class="limg" style="background:${x.t.color}">${initials(x.p.name)}<img src="${shot(x.p.id)}" onerror="${FALLBACK}" alt="${x.p.name}"></div>
       <div class="ln">${x.p.name}<div class="lt">${x.t.abbr} · ${x.p.pos}</div></div>
       <div class="lv">${x.p.s[stat]}</div>
     </div>`).join('') + `</div>`;
@@ -215,6 +219,7 @@ function renderHome(filter=''){
   const list = Object.values(DATA())
     .filter(t => (t.name+t.abbr).toLowerCase().includes(filter.toLowerCase()))
     .sort((a,b)=> b.champion-a.champion || a.name.localeCompare(b.name));
+  if(!list.length){ $('teams').innerHTML = `<p class="lead" style="grid-column:1/-1">No teams match "${filter}".</p>`; return; }
   $('teams').innerHTML = list.map(t=>`
     <div class="team" style="background:${t.color}" data-abbr="${t.abbr}">
       ${t.champion?'<div class="champ">🏆</div>':''}
@@ -252,7 +257,7 @@ function card(p){
   const s=p.s||{};
   return `<div class="player">
     <div class="head">
-      <img class="shot" src="${shot(p.id)}" onerror="${FALLBACK}" alt="">
+      <div class="shot">${initials(p.name)}<img src="${shot(p.id)}" onerror="${FALLBACK}" alt="${p.name}"></div>
       <div class="headtxt">
         <div class="num">#${p.num||'-'}</div>
         <div class="name">${p.name}</div>
