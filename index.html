@@ -253,7 +253,7 @@
   <section id="detail" class="hidden">
     <div class="teamhead" id="teamhead"></div>
     <div class="meta" id="teammeta"></div>
-    <div class="avghead">Averages <span>· team vs NBA, per player per game</span></div>
+    <div class="avghead">Team averages <span>· per game, vs NBA average</span></div>
     <div class="avgs" id="teamavg"></div>
     <div class="controls" id="controls">
       <button data-sort="NUM" class="active">Jersey #</button>
@@ -351,35 +351,34 @@ function renderHome(filter=''){
 }
 
 /* ==================== TEAM vs NBA AVERAGES ==================== */
-const AVG_KEYS=['PTS','REB','AST','STL','BLK','FG_PCT','FG3_PCT','FT_PCT'];
-// Mean of each stat over the given players (only those with recorded stats count).
-function avgStats(players){
-  const sum={}, n={}; AVG_KEYS.forEach(k=>{sum[k]=0;n[k]=0;});
-  players.forEach(p=>{ if(p.s) AVG_KEYS.forEach(k=>{ if(p.s[k]!=null){ sum[k]+=p.s[k]; n[k]++; } }); });
-  const out={}; AVG_KEYS.forEach(k=> out[k]=n[k]?sum[k]/n[k]:0); return out;
-}
-// League averages are the same for every team in a season, so cache them per season.
+// Team per-game totals from nba_api (LeagueDashTeamStats). Turnovers: lower is better.
+const AVG_KEYS=['PTS','REB','AST','STL','BLK','TOV','FG_PCT','FG3_PCT','FT_PCT'];
+const LOWER_BETTER=new Set(['TOV']);
+// League average = mean of every team's per-game totals this season (cached per season).
 const _leagueAvg={};
 function leagueAverages(){
   if(_leagueAvg[season]) return _leagueAvg[season];
-  const all=[]; for(const t of Object.values(DATA())) for(const p of t.players) all.push(p);
-  return _leagueAvg[season]=avgStats(all);
+  const totals=Object.values(DATA()).map(t=>t.totals).filter(Boolean);
+  const out={}; AVG_KEYS.forEach(k=> out[k]=totals.reduce((a,t)=>a+(t[k]||0),0)/(totals.length||1));
+  return _leagueAvg[season]=out;
 }
-// Render the compare-cards: team average, NBA average, delta, and a bar (team relative to 2x NBA).
+// Render the compare-cards: team total, NBA average, delta, and a bar (50% == league average).
 function renderAverages(t){
-  const nba=leagueAverages(), tm=avgStats(t.players);
-  const LABELS={PTS:'Points',REB:'Rebounds',AST:'Assists',STL:'Steals',BLK:'Blocks',FG_PCT:'FG%',FG3_PCT:'3P%',FT_PCT:'FT%'};
+  if(!t.totals){ $('teamavg').innerHTML=''; return; }   // older data without team totals
+  const nba=leagueAverages();
+  const LABELS={PTS:'Points',REB:'Rebounds',AST:'Assists',STL:'Steals',BLK:'Blocks',TOV:'Turnovers',FG_PCT:'FG%',FG3_PCT:'3P%',FT_PCT:'FT%'};
   const isPct=k=>k.endsWith('PCT');
   const show=(k,v)=> isPct(k)?(v*100).toFixed(1)+'%':v.toFixed(1);
   $('teamavg').innerHTML = AVG_KEYS.map(k=>{
-    const tv=tm[k], nv=nba[k], up=tv>=nv;
+    const tv=t.totals[k], nv=nba[k], higher=tv>=nv;
+    const good=LOWER_BETTER.has(k)?tv<nv:higher;              // color by good/bad, arrow by direction
     const d=isPct(k)?(tv-nv)*100:tv-nv;                       // delta (percentage points for %)
     const diff=(d>=0?'+':'')+d.toFixed(1);
     const w=Math.max(3,Math.min(100, nv? (tv/(nv*2))*100 : 50)); // bar: 50% == league average
     return `<div class="avgcard">
       <div class="avglabel">${LABELS[k]}</div>
       <div class="avgteam">${show(k,tv)}</div>
-      <div class="avgnba">NBA ${show(k,nv)} <span class="avgdiff ${up?'up':'down'}">${up?'▲':'▼'}${diff}</span></div>
+      <div class="avgnba">NBA ${show(k,nv)} <span class="avgdiff ${good?'up':'down'}">${higher?'▲':'▼'}${diff}</span></div>
       <div class="avgbar"><i style="width:${w}%"></i></div>
     </div>`;
   }).join('');

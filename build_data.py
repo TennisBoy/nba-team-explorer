@@ -1,7 +1,7 @@
 """Fetch NBA rosters + per-game stats across multiple seasons -> nba_data.js"""
 import json, time
 from nba_api.stats.static import teams as static_teams
-from nba_api.stats.endpoints import commonteamroster, leaguedashplayerstats
+from nba_api.stats.endpoints import commonteamroster, leaguedashplayerstats, leaguedashteamstats
 
 SEASONS = ["2025-26", "2024-25", "2023-24", "2022-23", "2021-22"]
 
@@ -57,6 +57,19 @@ for season in SEASONS:
                 "BLK":round(float(r["BLK"]),1),"FG_PCT":round(float(r["FG_PCT"]),3),
                 "FG3_PCT":round(float(r["FG3_PCT"]),3),"FT_PCT":round(float(r["FT_PCT"]),3),
             }
+    # team-level per-game totals (points/rebounds/... the team puts up per game)
+    tsdf = fetch(leaguedashteamstats.LeagueDashTeamStats,
+                 season=season, per_mode_detailed="PerGame")
+    totals_by_tid = {}
+    if tsdf is not None:
+        for _, r in tsdf.iterrows():
+            totals_by_tid[int(r["TEAM_ID"])] = {
+                "PTS":round(float(r["PTS"]),1),"REB":round(float(r["REB"]),1),
+                "AST":round(float(r["AST"]),1),"STL":round(float(r["STL"]),1),
+                "BLK":round(float(r["BLK"]),1),"TOV":round(float(r["TOV"]),1),
+                "FG_PCT":round(float(r["FG_PCT"]),3),"FG3_PCT":round(float(r["FG3_PCT"]),3),
+                "FT_PCT":round(float(r["FT_PCT"]),3),
+            }
     ALL["data"][season] = {}
     for i, t in enumerate(teams, 1):
         abbr = t["abbreviation"]
@@ -76,6 +89,7 @@ for season in SEASONS:
             "id":t["id"],"name":t["full_name"],"city":t["city"],"nickname":t["nickname"],
             "abbr":abbr,"color":COLORS.get(abbr,"#1D428A"),"accent":ACCENT.get(abbr,"#fff"),
             "champion":abbr==champ,"players":players,
+            "totals":totals_by_tid.get(t["id"]),   # team per-game totals
         }
         time.sleep(0.5)
 
