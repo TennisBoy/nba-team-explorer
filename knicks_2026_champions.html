@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 NBA Champions — New York Knicks</title>
+<title>2026 NBA Champions - New York Knicks</title>
 <style>
   :root{
     --knicks-blue:#006BB6;
@@ -89,16 +89,16 @@
   <div class="inner">
     <div class="crown">🏆</div>
     <h1>New York Knicks</h1>
-    <div class="sub">2026 NBA Champions &nbsp;·&nbsp; def. San Antonio Spurs 4–1</div>
+    <div class="sub">2026 NBA Champions &nbsp;·&nbsp; def. San Antonio Spurs 4-1</div>
     <div class="badge">Finals MVP: Jalen Brunson</div>
   </div>
 </header>
 
 <main>
   <div class="meta">
-    <div class="stat"><b id="s-count">—</b><span>Players</span></div>
-    <div class="stat"><b id="s-tall">—</b><span>Tallest</span></div>
-    <div class="stat"><b id="s-avg">—</b><span>Avg Height</span></div>
+    <div class="stat"><b id="s-count">-</b><span>Players</span></div>
+    <div class="stat"><b id="s-tall">-</b><span>Tallest</span></div>
+    <div class="stat"><b id="s-avg">-</b><span>Avg Height</span></div>
     <div class="stat"><b>3rd</b><span>NBA Title</span></div>
   </div>
 
@@ -114,7 +114,7 @@
 </main>
 
 <footer>
-  Roster data via <a href="https://github.com/swar/nba_api" target="_blank" rel="noopener">nba_api</a> · 2025–26 season.
+  Roster data via <a href="https://github.com/swar/nba_api" target="_blank" rel="noopener">nba_api</a> · 2025-26 season.
   Championship result via NBA.com &amp; ESPN.
 </footer>
 
@@ -164,7 +164,7 @@ const stats = {
 
 const toInches = h => { const [f,i]=h.split('-').map(Number); return f*12+i; };
 const fmt = inch => `${Math.floor(inch/12)}-${inch%12}`;
-const pct = v => v==null ? '—' : (v*100).toFixed(1)+'%';
+const pct = v => v==null ? '-' : (v*100).toFixed(1)+'%';
 
 // merge
 roster.forEach(p => { p.s = stats[p.PLAYER] || {}; p.HEIGHT_IN = toInches(p.HEIGHT); });
@@ -176,18 +176,18 @@ function render(list){
     return `
     <div class="player">
       <div class="head">
-        <div class="num">#${p.NUM || '—'}</div>
+        <div class="num">#${p.NUM || '-'}</div>
         <div class="posbadge">${p.POSITION} · ${p.HEIGHT}</div>
       </div>
       <div class="name">${p.PLAYER}</div>
       <div class="rows">
-        <div class="cell"><span>PTS</span><b>${s.PTS??'—'}</b></div>
-        <div class="cell"><span>REB</span><b>${s.REB??'—'}</b></div>
-        <div class="cell"><span>AST</span><b>${s.AST??'—'}</b></div>
+        <div class="cell"><span>PTS</span><b>${s.PTS??'-'}</b></div>
+        <div class="cell"><span>REB</span><b>${s.REB??'-'}</b></div>
+        <div class="cell"><span>AST</span><b>${s.AST??'-'}</b></div>
       </div>
       <div class="subline">
-        <span>GP <b>${s.GP??'—'}</b></span>
-        <span>MIN <b>${s.MIN??'—'}</b></span>
+        <span>GP <b>${s.GP??'-'}</b></span>
+        <span>MIN <b>${s.MIN??'-'}</b></span>
         <span>FG <b>${pct(s.FG_PCT)}</b></span>
         <span>3P <b>${pct(s.FG3_PCT)}</b></span>
       </div>

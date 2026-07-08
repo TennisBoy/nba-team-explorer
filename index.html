@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NBA Teams — Rosters, Positions &amp; Heights</title>
+<title>NBA Teams: Rosters, Positions &amp; Heights</title>
 <style>
   :root{--ink:#0b1622;--muted:#5b6b7b;--line:#e4e9ef;--card:#fff;--bg:#f4f6f9;
     --tc:#1D428A;--ta:#fff}
@@ -128,9 +128,9 @@
   <section id="home">
     <div class="hero">
       <h2>NBA Team Explorer</h2>
-      <p>A visual guide to every NBA team's roster — each player's <b>position</b>, <b>height</b>,
-         and <b>per-game stats</b> — with the league champion highlighted for each season. Live data
-         pulled from the NBA's official stats via the open-source <b>nba_api</b>.</p>
+      <p>Browse every NBA team's roster and see each player's <b>position</b>, <b>height</b>, and
+         <b>per-game stats</b>. The season's champion is highlighted. Data comes from the NBA's official
+         stats through the open-source <b>nba_api</b>.</p>
       <div class="feats">
         <div class="feat">🏀<div><b>30 teams</b><small>colored & clickable</small></div></div>
         <div class="feat">📅<div><b>5 seasons</b><small>2021-22 → 2025-26</small></div></div>
@@ -173,7 +173,7 @@ const SEASONS = ROOT.seasons;
 const $ = id => document.getElementById(id);
 const toIn = h => { if(!h||h.indexOf('-')<0) return 0; const [f,i]=h.split('-').map(Number); return f*12+i; };
 const fmtH = n => `${Math.floor(n/12)}-${n%12}`;
-const pct = v => v==null?'—':(v*100).toFixed(1)+'%';
+const pct = v => v==null?'-':(v*100).toFixed(1)+'%';
 const shot = id => `https://cdn.nba.com/headshots/nba/latest/1040x760/${id}.png`;
 const initials = n => n.split(' ').map(w=>w[0]).slice(0,2).join('');
 const FALLBACK = "this.onerror=null;this.style.display='none';";
@@ -243,8 +243,8 @@ function openTeam(abbr){
   $('teammeta').innerHTML = `
     <div class="stat"><b>${t.players.length}</b><span>Players</span></div>
     <div class="stat"><b>${tallest.height}"</b><span>Tallest</span></div>
-    <div class="stat"><b>${hs.length?fmtH(Math.round(hs.reduce((a,b)=>a+b,0)/hs.length)):'—'}"</b><span>Avg Height</span></div>
-    <div class="stat"><b>${scorer.s?scorer.s.PTS:'—'}</b><span>Top Scorer PPG</span></div>`;
+    <div class="stat"><b>${hs.length?fmtH(Math.round(hs.reduce((a,b)=>a+b,0)/hs.length)):'-'}"</b><span>Avg Height</span></div>
+    <div class="stat"><b>${scorer.s?scorer.s.PTS:'-'}</b><span>Top Scorer PPG</span></div>`;
   renderRoster();
 }
 
@@ -254,18 +254,18 @@ function card(p){
     <div class="head">
       <img class="shot" src="${shot(p.id)}" onerror="${FALLBACK}" alt="">
       <div class="headtxt">
-        <div class="num">#${p.num||'—'}</div>
+        <div class="num">#${p.num||'-'}</div>
         <div class="name">${p.name}</div>
       </div>
       <div class="posbadge">${p.pos}<br>${p.height}</div>
     </div>
     <div class="rows">
-      <div class="cell"><span>PTS</span><b>${s.PTS??'—'}</b></div>
-      <div class="cell"><span>REB</span><b>${s.REB??'—'}</b></div>
-      <div class="cell"><span>AST</span><b>${s.AST??'—'}</b></div>
+      <div class="cell"><span>PTS</span><b>${s.PTS??'-'}</b></div>
+      <div class="cell"><span>REB</span><b>${s.REB??'-'}</b></div>
+      <div class="cell"><span>AST</span><b>${s.AST??'-'}</b></div>
     </div>
     <div class="subline">
-      <span>GP <b>${s.GP??'—'}</b></span><span>MIN <b>${s.MIN??'—'}</b></span>
+      <span>GP <b>${s.GP??'-'}</b></span><span>MIN <b>${s.MIN??'-'}</b></span>
       <span>FG <b>${pct(s.FG_PCT)}</b></span><span>3P <b>${pct(s.FG3_PCT)}</b></span>
     </div></div>`;
 }
