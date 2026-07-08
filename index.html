@@ -453,7 +453,7 @@ const TW=[
   (function tick(){
     const full=TW[pi]; ci += del?-1:1;
     el.textContent=full.slice(0,Math.max(0,ci));
-    let delay=del?38:65;
+    let delay=del?18:28;
     if(!del && ci>=full.length){ delay=1600; del=true; }
     else if(del && ci<=0){ del=false; pi=(pi+1)%TW.length; delay=320; }
     setTimeout(tick,delay);
